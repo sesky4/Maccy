@@ -311,6 +311,13 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
     item.cleanupImages()
   }
 
+  private func pasteAfterClosingPopup() {
+    AppState.shared.popup.previousApplication?.activate(options: [.activateIgnoringOtherApps])
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+      Clipboard.shared.paste()
+    }
+  }
+
   private func currentModifierFlags() -> NSEvent.ModifierFlags {
     return NSApp.currentEvent?.modifierFlags
       .intersection(.deviceIndependentFlagsMask)
@@ -329,7 +336,7 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
       AppState.shared.popup.close()
       Clipboard.shared.copy(item.item, removeFormatting: Defaults[.removeFormattingByDefault])
       if Defaults[.pasteByDefault] {
-        Clipboard.shared.paste()
+        pasteAfterClosingPopup()
       }
     } else {
       switch HistoryItemAction(modifierFlags) {
@@ -339,11 +346,11 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
       case .paste:
         AppState.shared.popup.close()
         Clipboard.shared.copy(item.item)
-        Clipboard.shared.paste()
+        pasteAfterClosingPopup()
       case .pasteWithoutFormatting:
         AppState.shared.popup.close()
         Clipboard.shared.copy(item.item, removeFormatting: true)
-        Clipboard.shared.paste()
+        pasteAfterClosingPopup()
       case .unknown:
         return
       }
